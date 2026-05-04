@@ -1,64 +1,168 @@
-# Полная документация API Rutube v2
+🎬 API Rutube v2 — Полное руководство для начинающих
 
-**Автор расшифровки:** @bytebudda  
-**Важное примечание:** Это описание актуальной версии API Rutube (v2), которая не имеет публичной документации. Все данные собраны путём реверс-инжиниринга. Официальная документация для разработчиков (`http://rutube.ru/info/to_developers/`) описывает устаревшую версию API.  
-**Последнее обновление:** 2026-05-03
+Автор: @bytebudda
+Последнее обновление: 4 мая 2026 г.
 
-## Оглавление
-1. [Обзор](#1-обзор)
-2. [Content API](#2-content-api)
-   - 2.1 [Витрины (Feeds)](#21-витрины-feeds)
-   - 2.2 [Типы источников (`content_type.model`)](#22-типы-источников-content_typemodel)
-   - 2.3 [Список видео (Теги / Плейлисты)](#23-список-видео-теги--плейлисты)
-   - 2.4 [Кардгруппы (Смешанные списки)](#24-кардгруппы-смешанные-списки)
-   - 2.5 [Метаинформация ТВ-шоу](#25-метаинформация-тв-шоу)
-   - 2.6 [Видео пользователя (Канал)](#26-видео-пользователя-канал)
-   - 2.7 [Метаданные видео (расширенная структура)](#27-метаданные-видео-расширенная-структура)
-   - 2.8 [Поиск видео](#28-поиск-видео)
-   - 2.9 [Параметры воспроизведения (Play Options)](#29-параметры-воспроизведения-play-options)
-   - 2.10 [Пагинация](#210-пагинация)
-   - 2.11 [Категории видео (полный список)](#211-категории-видео-полный-список)
-   - 2.12 [Связанные эндпоинты метаинформации](#212-связанные-эндпоинты-метаинформации)
-3. [oEmbed API](#3-oembed-api)
-4. [Player API](#4-player-api)
-5. [Partner API (авторизованный доступ)](#5-partner-api-авторизованный-доступ)
-6. [Тонкости и особенности](#6-тонкости-и-особенности)
-7. [Примеры запросов](#7-примеры-запросов)
-8. [Полезные ссылки](#8-полезные-ссылки)
+⚠️ Важно: официальной документации по этой версии API не существует. Вся информация собрана путём наблюдения за запросами, которые отправляет официальный сайт rutube.ru. Возможны неточности — если заметите расхождение, сообщите автору.
 
-## 1. Обзор
+---
 
-Rutube предоставляет несколько уровней API:
-- **Content API** — получение контента (витрины, видео, плейлисты, каналы, поиск, категории);
-- **Player API** — управление встроенным плеером;
-- **oEmbed API** — встраивание видео по стандарту oEmbed;
-- **Partner API** — загрузка и управление видео (требует авторизации).
+📖 Что такое API Rutube и зачем оно нужно
 
-API возвращает данные в форматах JSON, JSONP и XML. Основной базовый URL — `https://rutube.ru/api`.
+API (Application Programming Interface) — это способ получать данные с Rutube для своих программ или сайтов. Например, вы можете:
 
-## 2. Content API
+· Показывать список фильмов из определённой категории на своём сайте.
+· Встроить плеер с видео в своё приложение.
+· Сделать поиск по видео без захода на rutube.ru.
+· Создать собственное приложение для Smart TV или телефона.
 
-### 2.1. Витрины (Feeds)
+API отдаёт данные в формате JSON — это текстовый формат, который легко обрабатывается в любом языке программирования.
 
-Витрины — это способ организации и представления видеоконтента на портале Rutube. Каждая витрина состоит из вкладок, которые содержат источники карточек (теги, ТВ-шоу, пользователи и т.д.).
+---
 
-**Эндпоинт:**
-GET https://rutube.ru/api/feeds/{slug}?format=json
+🧱 Базовые понятия
 
+Базовый URL
 
-**Параметры:**
-| Параметр | Тип | Описание |
-|---|---|---|
-| `slug` | string | Уникальный идентификатор витрины (например, `movies`, `series`, `tnt`) |
-| `format` | string | Формат ответа (`json`, `jsonp`, `xml`, `api` для human-readable) |
+Все запросы начинаются с https://rutube.ru/api.
+Например, чтобы получить список категорий, нужно открыть:
 
-**Пример ответа:**
+```
+https://rutube.ru/api/video/categories/
+```
+
+Как отправлять запросы
+
+· Браузер — просто вставьте адрес в строку и нажмите Enter (работает, если у вас не заблокирован CORS, см. ниже).
+· JavaScript (fetch) — внутри веб-приложения.
+· Командная строка (cURL):
+  ```bash
+  curl "https://rutube.ru/api/video/categories/"
+  ```
+· Python:
+  ```python
+  import requests
+  r = requests.get("https://rutube.ru/api/video/categories/")
+  data = r.json()
+  ```
+
+CORS и прокси
+
+Если вы пишете веб-приложение на JavaScript и пытаетесь сделать fetch напрямую к rutube.ru, браузер заблокирует запрос. Это политика безопасности (CORS).
+Решение: сделайте прокси-сервер (например, на Node.js), который будет принимать запросы от вашего приложения и перенаправлять их на Rutube. Подробнее в разделе «Решение проблем».
+
+Пагинация (страницы)
+
+Когда вы запрашиваете список видео, сервер не отдаст сразу все тысячи записей. Он вернёт страницу с ограниченным количеством элементов. В ответе будут поля:
+
+· page — номер текущей страницы,
+· has_next — есть ли следующая,
+· next — ссылка на следующую страницу (или null),
+· per_page — сколько элементов на странице.
+
+Пример:
+
+```json
+{
+  "results": [...],
+  "page": 1,
+  "has_next": true,
+  "next": "/api/tags/video/7487/?page=2",
+  "per_page": 20
+}
+```
+
+---
+
+🌐 Список эндпоинтов (точек входа)
+
+1. Категории видео
+
+GET https://rutube.ru/api/video/categories/
+
+Возвращает все возможные категории (жанры/тематики) видео. Это основа для навигации.
+
+Пример ответа (сокращён):
+
+```json
+[
+  {
+    "id": 4,
+    "name": "Фильмы",
+    "short_name": "kino",
+    "category_url": "https://rutube.ru/video/category/4/",
+    "related_showcase": null,
+    "for_kids": false,
+    "for_import": true
+  }
+]
+```
+
+Что значат поля:
+
+Поле Тип Описание
+id number Уникальный ID категории
+name string Название на русском
+short_name string Латинский идентификатор (slug), например kino, series
+category_url string Адрес страницы категории на сайте
+related_showcase string или null Связанная витрина (feed), если есть
+for_kids boolean Детский контент
+for_import boolean Разрешён ли импорт видео в эту категорию через партнёрское API
+update_ts string Время последнего обновления
+
+Полная таблица категорий (id → название → short_name):
+(см. таблицу в разделе «Приложение»)
+
+2. Витрины категорий (список всех feed-страниц)
+
+GET https://rutube.ru/api/v1/feeds/categories
+
+Возвращает список всех витрин (главных страниц разделов) с их правильными слагами (slug).
+Это самый точный источник slugs, потому что short_name категории не всегда совпадает с реальным адресом витрины.
+
+Пример ответа:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Фильмы",
+    "slug": "movies",
+    "url": "/api/feeds/movies/"
+  },
+  {
+    "id": 2,
+    "name": "Сериалы",
+    "slug": "serials",
+    "url": "/api/feeds/serials/"
+  }
+]
+```
+
+Поля:
+
+· id — ID витрины.
+· name — название раздела.
+· slug — правильный идентификатор для URL (например, movies, serials, kids). Именно его нужно подставлять в /api/feeds/{slug}.
+· url — ссылка на эндпоинт витрины.
+
+Важное отличие от short_name категорий: у категории «Сериалы» short_name = series, но витрина доступна по serials. Поэтому для построения навигации используйте этот эндпоинт, а не short_name.
+
+3. Витрины (главные страницы разделов)
+
+GET https://rutube.ru/api/feeds/{slug}
+где {slug} — правильный идентификатор из /v1/feeds/categories (например, movies, serials, kids).
+
+Витрина описывает структуру главной страницы раздела: вкладки и источники контента (ресурсы).
+
+Пример: https://rutube.ru/api/feeds/movies?format=json
+
 ```json
 {
   "id": 1,
   "slug": "movies",
   "name": "Фильмы",
-  "meta_description": "Описание витрины",
+  "meta_description": "...",
   "page_url": "https://rutube.ru/feeds/movies/",
   "tabs": [
     {
@@ -75,7 +179,7 @@ GET https://rutube.ru/api/feeds/{slug}?format=json
           "content_type": {
             "model": "tag"
           },
-          "url": "/api/tags/video/7487/...",
+          "url": "/api/tags/video/7487/?limit=50&...",
           "name": "Рекомендуем",
           "extra_params": {}
         }
@@ -83,47 +187,80 @@ GET https://rutube.ru/api/feeds/{slug}?format=json
     }
   ]
 }
-Поля ответа витрины:
+```
 
-Поле Тип Описание id number ID витрины slug string Идентификатор витрины name string Название витрины meta_description string Описание page_url string Адрес на rutube.ru tabs array Массив вкладок
+Поля витрины:
+
+Поле Тип Описание
+id number ID витрины
+slug string Идентификатор витрины
+name string Название
+meta_description string Описание
+page_url string Адрес страницы на rutube.ru
+tabs array Массив вкладок
 
 Поля вкладки (tabs[]):
 
-Поле Тип Описание id number ID вкладки name string Название sort string Рекомендация сортировки (created_date, original, random) order_number number Порядковый номер slug string/null Уникальное название для hash-навигации link string/null Внешняя ссылка (если задана, вкладка делает редирект) resources array Источники карточек
+Поле Тип Описание
+id number ID вкладки
+name string Название
+sort string Предпочтительный порядок сортировки (created_date, original, random)
+order_number number Порядок показа
+slug string/null Slug для URL-якоря
+link string/null Внешняя ссылка (если есть — вкладка ведёт на неё)
+resources array Список источников контента
 
 Поля ресурса (resources[]):
 
-Поле Тип Описание id number ID источника object_id string Служебный ID content_type object Тип источника (model: tag, tv, cardgroup, userchannel, promogroup, feedsource и др.) url string Адрес для загрузки карточек name string Название источника extra_params object Дополнительные параметры
+Поле Тип Описание
+id number ID ресурса
+object_id string Внутренний ID
+content_type object Тип контента (см. ниже)
+url string Куда идти за реальными данными
+name string Название (показывается пользователю)
+extra_params object Дополнительные параметры (лимиты, флаги)
 
-2.2. Типы источников (content_type.model)
+4. Типы ресурсов (content_type.model)
 
-Возможные типы источников (объект content_type):
+Внутри ресурсов витрины поле content_type.model говорит, какой именно контент лежит по ссылке. Это нужно, чтобы знать, как парсить ответ.
 
-Модель Тип контента Описание tag Список видео Тег/подборка видео tv ТВ-шоу Сериал или телешоу tvlastepisode Последний эпизод Последний эпизод конкретного ТВ-шоу playlist Плейлист Список видео (плоская структура) cardgroup Кардгруппа Смешанный контейнер (может содержать видео, сериалы, каналы) subscriptiontvseries Подписка Подборка от партнера (структура как cardgroup) promogroup / promofeed Промо Промо-элементы (не видео) userchannel Канал Пользователь Rutube person Персона Актер, режиссер и т.д. feedsource Внешняя ссылка Баннер или редирект
+Модель Тип контента Структура данных
+tag Подборка видео Плоская (поля в корне объекта)
+playlist Плейлист Плоская
+tv ТВ-шоу / сериал Плоская (эпизоды) или вложенная (мета)
+cardgroup Смешанный контейнер Вложенная (item.object)
+subscriptiontvseries Партнёрская подборка Вложенная
+subscriptionfilms Партнёрские фильмы Вложенная
+promogroup / promofeed Промо-блоки Вложенная (не видео)
+userchannel Канал Вложенная
+person Персона (актёр и т.п.) Вложенная
+feedsource Внешний баннер Ссылка, не парсится
 
-2.3. Список видео (Теги / Плейлисты)
+Как отличать плоскую структуру от вложенной:
 
-Эндпоинт:
+· Если у элемента есть object и content_type → берите данные из object.
+· Иначе все поля (название, длительность, превью) лежат прямо в элементе.
 
-GET https://rutube.ru/api/tags/video/{tag_id}/?page=1&limit=20&format=json
-Параметры:
+5. Загрузка содержимого ресурса
 
-Параметр Тип Описание page number Номер страницы limit number Количество элементов на странице sort string Сортировка (tagged_a, tagged_d, created_a, created_d, publication_a, publication_d)
+После того как вы получили URL ресурса (например, /api/tags/video/7487/...), вы запрашиваете его — и получаете либо плоский список видео, либо вложенный список (для cardgroup).
 
-Пример ответа (плоская структура):
+5.1. Плоский список (теги, плейлисты)
 
+GET https://rutube.ru/api/tags/video/{tag_id}/?page=1&format=json
+GET https://rutube.ru/api/metainfo/tv/{tv_id}/video/?season=1
+
+Пример ответа:
+
+```json
 {
   "results": [
     {
       "id": "abc123",
-      "type": "video",
-      "title": "Название фильма",
+      "title": "Название видео",
       "duration": 7234,
-      "thumbnail_url": "https://pic.rutube.ru/video/...",
-      "author": {
-        "name": "Канал",
-        "id": 456
-      },
+      "thumbnail_url": "https://pic.rutube.ru/...",
+      "author": { "name": "Канал", "id": 456 },
       "hits": 1500000,
       "publication_ts": 1672531200,
       "is_paid": false,
@@ -135,257 +272,169 @@ GET https://rutube.ru/api/tags/video/{tag_id}/?page=1&limit=20&format=json
   "page": 1,
   "per_page": 20
 }
-Поля элемента списка (видео):
+```
 
-Поле Тип Описание id string ID видео (32 символа hex) type string Тип ("video", реже "tv") title string Название duration number Длительность в секундах thumbnail_url string URL превью preview_url string Анимированное превью (GIF) author object Автор (name, id) hits number Количество просмотров publication_ts number Timestamp публикации is_paid boolean Платное видео pg_rating object Возрастной рейтинг (age) description string Описание
+Поля видео:
 
-2.4. Кардгруппы (Смешанные списки)
+Поле Тип Описание
+id string Уникальный ID видео (32 символа)
+title string Название
+duration number Длительность в секундах
+thumbnail_url string Ссылка на обложку
+preview_url string или null Анимированная gif-превьюшка
+author object Автор (name, id)
+hits number Количество просмотров
+publication_ts number Дата публикации (timestamp)
+is_paid boolean Платное ли видео
+pg_rating object Возрастное ограничение (age)
+description string Описание
 
-Эндпоинт:
+5.2. Вложенный список (cardgroup, subscription…)
 
 GET https://rutube.ru/api/feeds/cardgroup/{id}/?format=json
-Особенности:
-
-· Каждый элемент содержит вложенный объект object и content_type.model. · Может содержать разнородные сущности: tv, userchannel, tag.
 
 Пример ответа:
 
+```json
 {
   "results": [
     {
       "content_type": { "model": "tv" },
       "object": {
-        "id": 1478618,
-        "type": "movie",
-        "name": "Сериал XYZ",
-        "poster_url": "https://...",
-        "year_start": 2021,
-        "kinopoisk_rating": 7.8,
-        "seasons_count": 3
-      }
-    },
-    {
-      "content_type": { "model": "userchannel" },
-      "object": {
-        "id": 789,
-        "name": "Киноканал",
-        "subscribers_count": 50000,
-        "user_channel_image": "https://..."
+        "id": 998126,
+        "name": "Подслушано в Рыбинске",
+        "poster_url": "...",
+        "year_start": 2025,
+        "kinopoisk_rating": 7.5,
+        "seasons_count": 1
       }
     }
   ],
   "has_next": false,
   "page": 1
 }
-2.5. Метаинформация ТВ-шоу
+```
 
-Эндпоинт:
+Здесь данные лежат внутри object, а тип указан в content_type.model. Аналогично обрабатываются userchannel, person.
 
-GET https://rutube.ru/api/metainfo/tv/{tv_id}/?format=json
-Эндпоинт списка эпизодов:
+6. Детальная информация о видео
 
-GET https://rutube.ru/api/metainfo/tv/{tv_id}/video/?page=1&sort=series_d&format=json
-Параметры сортировки для ТВ-шоу:
+GET https://rutube.ru/api/video/{video_id}/
 
-Значение Описание series_a По возрастанию серий series_d По убыванию серий created_a По дате добавления (возрастание) created_d По дате добавления (убывание) publication_a По дате публикации (возрастание) publication_d По дате публикации (убывание)
+Возвращает мега-подробный объект с кучей полей: описание, теги, ограничения по странам, ссылки на сериал, персоны, жанры, embed-код и т.д.
 
-Дополнительные параметры:
+Пример (сильно сокращён):
 
-Параметр Описание season Номер сезона episode Номер эпизода origin__type Платформа (rtb — Rutube, rst — трансляции, ytb — YouTube)
-
-2.6. Видео пользователя (Канал)
-
-Эндпоинт:
-
-GET https://rutube.ru/api/video/person/{person_id}/?page=1&limit=20&format=json
-Возвращает список видео пользователя.
-
-2.7. Метаданные видео (расширенная структура)
-
-Эндпоинт: GET https://rutube.ru/api/video/{video_id}/ {video_id} — 32-значный hex-идентификатор.
-
-Возвращает подробную информацию о видео, включая автора, категорию, теги, статистику, ограничения и встроенные ссылки на связанные ресурсы.
-
-Пример ответа:
-
+```json
 {
-  "id": "8431c687e7e44c2bb4f020b77f07e38b",
-  "title": "Путешествие к бессмертию, 176 серия",
-  "description": "",
-  "thumbnail_url": "https://pic.rtbcdn.ru/video/2026-01-03/dc/53/dc532acef66b836ed6685063f39ca3ec.jpg",
-  "is_audio": false,
-  "created_ts": "2026-01-03T15:55:05",
-  "video_url": "https://rutube.ru/video/8431c687e7e44c2bb4f020b77f07e38b/",
-  "track_id": 442811214,
-  "hits": 436099,
-  "duration": 1175,
-  "is_livestream": false,
-  "is_on_air": false,
-  "last_update_ts": "2026-01-03T20:00:13",
-  "stream_type": null,
-  "origin_type": "rtb",
-  "picture_url": "",
-  "preview_url": null,
-  "author": {
-    "id": 27141608,
-    "name": "РуАниме",
-    "avatar_url": "https://pic.rtbcdn.ru/user/82/60/8260b0c7d3dc0841a9d6e81e1f593400.jpeg",
-    "site_url": "https://rutube.ru/video/person/27141608/",
-    "is_allowed_offline": true
-  },
-  "is_adult": false,
-  "pg_rating": {
-    "age": 18,
-    "logo": "https://pic.rtbcdn.ru/agerestriction/8c/37/8c37c740367ef785ae1693da1fa4e449.png"
-  },
-  "publication_ts": "2026-01-03T20:00:13",
-  "is_paid": false,
-  "category": { "id": 41, "name": "Аниме", "short_name": "cartoons-anime" },
-  "is_official": true,
-  "is_licensed": true,
-  "embed_url": "https://rutube.ru/play/embed/8431c687e7e44c2bb4f020b77f07e38b",
-  "html": "<iframe width=\"720\" height=\"405\" src=\"https://rutube.ru/play/embed/8431c687e7e44c2bb4f020b77f07e38b\" frameborder=\"0\" webkitAllowFullScreen mozallowfullscreen allowfullscreen allow=\"encrypted-media\"></iframe>",
-  "is_hidden": false,
-  "has_high_quality": false,
-  "is_deleted": false,
-  "source_url": "https://rutube.ru/video/8431c687e7e44c2bb4f020b77f07e38b/",
-  "show": "https://rutube.ru/api/metainfo/contenttvs/8431c687e7e44c2bb4f020b77f07e38b",
-  "persons": "https://rutube.ru/api/metainfo/video/8431c687e7e44c2bb4f020b77f07e38b/videoperson",
-  "genres": "https://rutube.ru/api/metainfo/video/8431c687e7e44c2bb4f020b77f07e38b/videogenre",
-  "hashtags": [],
-  "all_tags": [
-    { "id": 5989, "name": "Рекомендуем", "url": "https://rutube.ru/tags/video/5989/", "type": "simple" }
-  ],
-  "restrictions": {
-    "country": {
-      "allowed": ["RU", "BY", "KZ", ...],
-      "restricted": ["US", "DE", ...]
-    }
-  },
-  "feed_url": "https://rutube.ru/metainfo/tv/211247/",
-  "feed_name": "Путешествие к бессмертию / Fan ren xiu xian chuan",
-  "feed_subscription_url": "https://rutube.ru/api/subscription/card/tv/211247",
-  "feed_subscribers_count": 678570,
-  "episode": 176,
-  "season": 0,
+  "id": "f912a7d3a6eb0b0350f1043105841307",
+  "title": "Подслушано в Рыбинске, 1 сезон, 1 серия",
+  "duration": 3114,
+  "hits": 217320,
+  "author": { "name": "PREMIER" },
+  "embed_url": "https://rutube.ru/play/embed/f912a7d3a6eb0b0350f1043105841307",
+  "html": "<iframe ...></iframe>",
   "is_serial": true,
-  "tv_show_id": 211247,
-  "hide_comments": false,
-  "hide_chat": false,
-  "hide_likes": false,
-  "hide_dislikes": false,
-  "properties": {
-    "hide_comments": false,
-    "is_donate_allowed": false,
-    "is_chat_saved": null
-  }
+  "episode": 1,
+  "season": 1,
+  "tv_show_id": 998126,
+  "persons": "https://rutube.ru/api/metainfo/video/f912a7d3a.../videoperson",
+  "genres": "https://rutube.ru/api/metainfo/video/f912a7d3a.../videogenre",
+  "restrictions": { "country": { "allowed": ["RU"], "restricted": ["US", ...] } }
 }
-Полный перечень полей:
+```
 
-Поле Тип Описание id string ID видео (32 hex) title string Название description string Описание thumbnail_url string URL постера is_audio boolean Только аудио created_ts string (datetime) Дата добавления на платформу video_url string Адрес страницы видео на Rutube track_id number Внутренний числовой идентификатор hits number Количество просмотров duration number Длительность в секундах is_livestream boolean Является ли прямой трансляцией is_on_air boolean Идёт ли эфир в данный момент last_update_ts string (datetime) Время последнего обновления stream_type string|null Тип стрима (для live) origin_type string Платформа происхождения (rtb, ytb, vim и т.д.) picture_url string Дополнительное изображение preview_url string|null Анимированное превью (gif) author object Информация об авторе (id, name, avatar_url, site_url, is_allowed_offline) is_adult boolean Контент 18+ pg_rating object Возрастной рейтинг (age, logo) publication_ts string (datetime) Время публикации is_paid boolean Платный контент product_id number|null ID продукта (для платного) category object Категория видео is_official boolean Официальное видео is_licensed boolean Лицензионный контент action_reason object Причина действия (id, name) embed_url string URL для встраивания html string HTML-код для вставки (iframe) is_hidden boolean Скрытое видео has_high_quality boolean Доступно высокое качество is_deleted boolean Удалено source_url string Исходный URL show string (URL) Ссылка на метаинформацию ТВ-шоу (если видео является эпизодом) persons string (URL) Эндпоинт для получения персон (актёры, режиссёры) genres string (URL) Эндпоинт для получения жанров music null Ссылка на музыку (не используется) hashtags array Хэштеги видео all_tags array Все теги видео restrictions object Ограничения по стране feed_url string (URL) Ссылка на родительский сериал/шоу feed_name string Название родительского шоу feed_subscription_url string (URL) Эндпоинт для управления подпиской на шоу feed_subscribers_count number Количество подписчиков шоу episode number Номер эпизода season number Номер сезона is_serial boolean Является ли сериалом tv_show_id number ID ТВ-шоу hide_comments boolean Скрыты ли комментарии hide_chat boolean Скрыт ли чат hide_likes boolean Скрыты ли лайки hide_dislikes boolean Скрыты ли дизлайки properties object Дополнительные свойства (hide_comments, is_donate_allowed, is_chat_saved)
+7. Поиск видео
 
-2.8. Поиск видео
-
-Эндпоинт:
-
-GET https://rutube.ru/api/search/video/?query={query}&page=1&limit=20&format=json
-Параметры:
-
-Параметр Тип Описание query string Поисковый запрос page number Номер страницы limit number Количество результатов filter object Фильтры (created, author_id, category_id, duration) short string Сортировка
-
-2.9. Параметры воспроизведения (Play Options)
-
-Эндпоинт: GET https://rutube.ru/api/play/options/{video_id}/
-
-Возвращает техническую информацию, необходимую для работы официального плеера Rutube: данные о доступном видео, рекламных блоках, внешнем виде плеера, субтитрах, авторе и категории.
-
-Служебные поля
-
-Поле Тип Описание acl_access.allowed boolean Доступ к видео разрешён black_rabbit boolean Флаг спецрежима защиты (DRM) count_load_time boolean Считать время загрузки cuepoints array Пользовательские маркеры на таймлайне
-
-Автор (author)
-
-Поле Тип Описание id number ID автора name string Название канала url string Ссылка на канал avatar_url string URL аватарки logo string|null Отдельный логотип
-
-Внешний вид плеера (appearance)
-
-Управляет интерфейсом плеера. Ключевые поля: color, auto_start, show_title, show_author, show_avatar, show_subscription, show_endscreen, show_related, cinema_mode, mini_player и другие (всего более 30 параметров).
-
-Реклама (advert)
-
-Массив объектов с конфигурацией рекламных блоков. Каждый блок содержит:
-
-· name — тип (preroll201, midroll80101, midpostroll) · url_template — URL-шаблон с плейсхолдерами (AdFox + SSP) · start — секунда запуска · count, delay, only_fire, xmltimeout, adtimeout, vast и др.
-
-Субтитры (captions)
-
-Массив дорожек субтитров. Каждая дорожка имеет поля: sub_id, format, langTitle, file, is_autogenerated, code.
-
-Категория (category)
-
-Поля: id, name, short_name, category_url, for_kids, update_ts.
-
-Описание (description)
-
-Текстовое описание видео.
-
-2.10. Пагинация
-
-Все списки поддерживают пагинацию со следующими полями:
-
-Поле Тип Описание results array Массив элементов текущей страницы page number Номер текущей страницы has_next boolean Наличие следующей страницы next string/null URL следующей страницы per_page number Элементов на странице
-
-2.11. Категории видео (полный список)
-
-Эндпоинт: GET https://rutube.ru/api/video/categories/
-
-Возвращает массив категорий. Поля: id, category_url, related_showcase, update_ts, name, short_name, for_kids, for_import.
-
-Полный список категорий:
-
-ID Название Slug Связанная витрина 2 Авто-мото auto null 4 Фильмы kino null 5 Сериалы series null 6 Музыка music null 7 Мультфильмы cartoons null 8 Новости и СМИ news null 10 Животные animals null 11 Путешествия travel null 13 Разное different null 16 Спорт sport null 17 Обучение education null 19 Юмор umor null 22 Видеоигры games null 35 Хобби hobby null 41 Аниме cartoons-anime null 42 Детям cartoons-kids null 43 Телепередачи tv https://rutube.ru/api/feeds/tv/ 44 Красота beauty null 45 Технологии и интернет technologies null 48 Аудио audio null 50 Психология psychology null 51 Политика politics null 52 Наука science null 53 Охота и рыбалка fishing null 54 Эзотерика esoterics null 55 Лайфхаки lifehack null 57 Развлечения entertainment null 58 Интервью interview null 59 Еда recipe null 60 Аудиокниги audiobooks null 61 Сад и огород garden null 62 Строительство и ремонт repairs null 63 Религия religion null 64 Культура art null 67 Бизнес и предпринимательство business null 68 Техника и оборудование technics null 69 Дизайн design null 70 Природа nature null 71 Здоровье health null 72 Недвижимость property null 73 Лайфстайл lifestyle null 78 Обзоры и распаковки товаров goods null
-
-2.12. Связанные эндпоинты метаинформации
-
-Персоны видео
-
-GET https://rutube.ru/api/metainfo/video/{video_id}/videoperson Возвращает список персон (актёры, режиссёры и т.д.)
-
-Жанры видео
-
-GET https://rutube.ru/api/metainfo/video/{video_id}/videogenre Возвращает список жанров.
-
-Информация о ТВ-шоу
-
-GET https://rutube.ru/api/metainfo/contenttvs/{video_id} Метаинформация о сериале/шоу, к которому относится видео.
-
-Управление подпиской на ТВ-шоу
-
-POST (или DELETE) https://rutube.ru/api/subscription/card/tv/{tv_show_id} Важно: Метод GET запрещён (405 Method Not Allowed). Используется для подписки/отписки. Требуется аутентификация.
-
-oEmbed API
-Эндпоинт:
-
-GET https://rutube.ru/api/oembed/?url={video_url}&format=json
-Возвращает стандартный oEmbed-ответ.
-
-Player API
-· Встраивание через iframe · Управление через postMessage (play, pause, seek, volume, etc.) · События (player:ready, player:playStart, player:changeState, player:currentTime и др.)
-
-(Подробное описание в предыдущих версиях документации.)
-
-Partner API (авторизованный доступ)
-Требуется авторизация. Доступны методы: загрузка видео, управление видео, плейлисты. (См. официальную документацию v1.)
-
-Тонкости и особенности
-· Плоская vs вложенная структура: теги/плейлисты – плоская, cardgroup – вложенная. · Превью: размеры ?size=l, m, s. · CORS: необходим прокси-сервер. · Коды ошибок: 400, 401, 403, 404, 405, 500.
-
-Примеры запросов
-GET https://rutube.ru/api/feeds/movies?format=json
-GET https://rutube.ru/api/tags/video/7487/?page=1&format=json
-GET https://rutube.ru/api/video/b07639337aa57ce56578bbb9e40e0102/
 GET https://rutube.ru/api/search/video/?query=комедия&page=1&limit=20&format=json
-GET https://rutube.ru/api/video/person/123/?page=1&limit=20&format=json
-GET https://rutube.ru/api/metainfo/tv/28/video?sort=series_d&season=1&format=json
+
+Работает, как теги: возвращает плоский список видео.
+
+8. Параметры воспроизведения (Play Options)
+
 GET https://rutube.ru/api/play/options/{video_id}/
-GET https://rutube.ru/api/video/categories/
+
+Отдаёт настройки плеера: цвета, рекламные блоки, субтитры и т.п. Нужно только если вы делаете кастомный плеер.
+
+9. Персоны и жанры видео
+
+Из детальной информации видео можно загрузить:
+
+· Персоны: GET /api/metainfo/video/{video_id}/videoperson
+· Жанры: GET /api/metainfo/video/{video_id}/videogenre
+· Связанное ТВ-шоу: GET /api/metainfo/contenttvs/{video_id}
+
+10. Подписка на сериал
+
+POST (или DELETE) https://rutube.ru/api/subscription/card/tv/{tv_show_id}
+GET-метод не поддерживается (возвращает 405). Требуется авторизация. Используется для подписки/отписки от сериала.
+
+11. Жанры кино (moviesgenres)
+
+GET https://rutube.ru/api/feeds/moviesgenres
+
+Это витрина, где каждая вкладка соответствует киножанру (комедия, драма, боевик и т.д.). Удобно для построения каталога по жанрам.
+
+---
+
+💡 Практические советы
+
+1. Всегда проверяйте has_next и загружайте следующую страницу по next, чтобы собрать полный список.
+2. Используйте v1/feeds/categories для получения slugs — они точнее, чем short_name в категориях.
+3. Для встраивания видео берите embed_url из детального объекта видео, а если оно не грузится в iframe — открывайте video_url в новой вкладке.
+4. Кэшируйте данные витрин и категорий — они редко меняются.
+5. Сортируйте с помощью параметра sort (для тегов) или ordering (для cardgroup).
+
+---
+
+📎 Приложение: Полная таблица категорий
+
+ID Название short_name (категория) slug витрины (из v1/feeds/categories)
+4 Фильмы kino movies
+5 Сериалы series serials
+43 Телепередачи tv tv
+6 Музыка music music
+7 Мультфильмы cartoons cartoons
+42 Детям cartoons-kids kids
+41 Аниме cartoons-anime cartoons-anime (?)
+8 Новости и СМИ news news
+16 Спорт sport sport
+17 Обучение education education
+19 Юмор umor umor
+22 Видеоигры games games
+35 Хобби hobby hobby
+10 Животные animals animals
+11 Путешествия travel travel
+13 Разное different different
+2 Авто-мото auto auto
+44 Красота beauty beauty
+45 Технологии technologies technologies
+48 Аудио audio audio
+50 Психология psychology psychology
+51 Политика politics politics
+52 Наука science science
+53 Охота и рыбалка fishing fishing
+54 Эзотерика esoterics esoterics
+55 Лайфхаки lifehack lifehack
+57 Развлечения entertainment entertainment
+58 Интервью interview interview
+59 Еда recipe recipe
+60 Аудиокниги audiobooks audiobooks
+61 Сад и огород garden garden
+62 Строительство repairs repairs
+63 Религия religion religion
+64 Культура art art
+67 Бизнес business business
+68 Техника technics technics
+69 Дизайн design design
+70 Природа nature nature
+71 Здоровье health health
+72 Недвижимость property property
+73 Лайфстайл lifestyle lifestyle
+78 Обзоры товаров goods goods
+
+(Для некоторых slug'ов требуются точные подтверждения — ориентируйтесь на вывод /v1/feeds/categories).
+
+---
+
+Удачи в изучении API Rutube! Если появятся вопросы, вы всегда можете написать автору.
