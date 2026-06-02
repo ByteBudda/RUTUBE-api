@@ -303,48 +303,49 @@ app.listen(PORT, () => console.log(`Rutube CORS Proxy успешно запущ�
 
 Используйте этот справочник для настройки хардкодного маппинга разделов в интерфейсе приложения.
 
-ID Название категории short_name (Категории) slug (Витрины из /v1/feeds/categories)
-4 Фильмы kino movies
-5 Сериалы serials serials
-43 Телепередачи tv tv
-6 Музыка music music
-7 Мультфильмы cartoons cartoons
-42 Детям cartoons-kids kids
-41 Аниме cartoons-anime anime
-8 Новости и СМИ news news
-16 Спорт sport sport
-17 Обучение education education
-19 Юмор humor humor
-22 Видеоигры games games
-35 Хобби hobby hobby
-10 Животные animals animals
-11 Путешествия travel travel
-13 Разное different different
-2 Авто-мото auto auto
-44 Красота beauty beauty beauty
-45 Технологии technologies technologies
-48 Аудио audio audio
-50 Психология psychology psychology
-51 Политика politics politics
-52 Наука science science
-53 Охота и рыбалка fishing fishing
-54 Эзотерика esoterics esoterics
-55 Лайфхаки lifehack lifehack
-57 Развлечения entertainment entertainment
-58 Интервью interview interview
-59 Еда recipe recipe
-60 Аудиокниги audiobooks audiobooks
-61 Сад и огород garden garden
-62 Строительство repairs repairs
-63 Религия religion religion
-64 Культура art art
-67 Бизнес business business
-68 Техника technics technics
-69 Дизайн design design
-70 Природа nature nature
-71 Здоровье health health
-72 Недвижимость property property
-73 Лайфстайл lifestyle lifestyle
-78 Обзоры товаров goods goods
+| ID | Название категории       | short_name (Категории)     | slug (Витрины из `/v1/feeds/categories`) |
+|----|--------------------------|----------------------------|------------------------------------------|
+| 4  | Фильмы                   | kino                       | movies                                   |
+| 5  | Сериалы                  | serials                    | serials                                  |
+| 43 | Телепередачи             | tv                         | tv                                       |
+| 6  | Музыка                   | music                      | music                                    |
+| 7  | Мультфильмы              | cartoons                   | cartoons                                 |
+| 42 | Детям                    | cartoons-kids              | kids                                     |
+| 41 | Аниме                    | cartoons-anime             | anime                                    |
+| 8  | Новости и СМИ            | news                       | news                                     |
+| 16 | Спорт                    | sport                      | sport                                    |
+| 17 | Обучение                 | education                  | education                                |
+| 19 | Юмор                     | humor                      | humor                                    |
+| 22 | Видеоигры                | games                      | games                                    |
+| 35 | Хобби                    | hobby                      | hobby                                    |
+| 10 | Животные                 | animals                    | animals                                  |
+| 11 | Путешествия              | travel                     | travel                                   |
+| 13 | Разное                   | different                  | different                                |
+| 2  | Авто-мото                | auto                       | auto                                     |
+| 44 | Красота                  | beauty beauty              | beauty                                   |
+| 45 | Технологии               | technologies               | technologies                             |
+| 48 | Аудио                    | audio                      | audio                                    |
+| 50 | Психология               | psychology                 | psychology                               |
+| 51 | Политика                 | politics                   | politics                                 |
+| 52 | Наука                    | science                    | science                                  |
+| 53 | Охота и рыбалка          | fishing                    | fishing                                  |
+| 54 | Эзотерика                | esoterics                  | esoterics                                |
+| 55 | Лайфхаки                 | lifehack                   | lifehack                                 |
+| 57 | Развлечения              | entertainment              | entertainment                            |
+| 58 | Интервью                 | interview                  | interview                                |
+| 59 | Еда                      | recipe                     | recipe                                   |
+| 60 | Аудиокниги               | audiobooks                 | audiobooks                               |
+| 61 | Сад и огород             | garden                     | garden                                   |
+| 62 | Строительство            | repairs                    | repairs                                  |
+| 63 | Религия                  | religion                   | religion                                 |
+| 64 | Культура                 | art                        | art                                      |
+| 67 | Бизнес                   | business                   | business                                 |
+| 68 | Техника                  | technics                   | technics                                 |
+| 69 | Дизайн                   | design                     | design                                   |
+| 70 | Природа                  | nature                     | nature                                   |
+| 71 | Здоровье                 | health                     | health                                   |
+| 72 | Недвижимость             | property                   | property                                 |
+| 73 | Лайфстайл                | lifestyle                  | lifestyle                                |
+| 78 | Обзоры товаров           | goods                      | goods                                    |
 
 ```
