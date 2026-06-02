@@ -353,3 +353,22 @@ class RutubeUniversalParser {
 
 // Экспорт (для ES-модулей)
 export { RutubeUniversalParser };
+
+
+
+Пример использования node.js
+
+import { RutubeUniversalParser as Rutube } from './rutube-universal-parser.js';
+
+(async () => {
+    // Поиск и получение HLS-потока
+    const result = await Rutube.findAndGetStream('интерстеллар трейлер');
+    if (result) {
+        console.log('Видео:', result.video.title);
+        console.log('HLS:', result.m3u8);
+    }
+
+    // Похожие видео
+    const related = await Rutube.getRelatedVideos('some_video_id');
+    console.log(related);
+})();
