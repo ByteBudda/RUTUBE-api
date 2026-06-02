@@ -354,9 +354,11 @@ class RutubeUniversalParser {
 // Экспорт (для ES-модулей)
 export { RutubeUniversalParser };
 
-
+```
 
 Пример использования node.js
+
+```javascript
 
 import { RutubeUniversalParser as Rutube } from './rutube-universal-parser.js';
 
